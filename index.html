@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Granblue Fantasy - Story Event box farming optimizer</title>
+  <script src="algebra.js/build/algebra-0.2.6.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<body class="container">
+  <div class="jumbotron">
+    <h1>Granblue Fantasy - Story Event box farming optimizer</h1>
+    <p class="lead">Tells you just how much more host material you need to empty those 20 boxes.</p>
+    <hr class="my-4" />
+    <p>That's just a quickly thrown together form with a Javascript solver, because I was tired of my slapdash Google Sheet with no solver. So here you go, from any arbitrary amount of tokens and host material, it can tell you how much total host material you need before you can forget about Very Hard and you can start letting the game farm itself by using full-auto on Impossible.</p>
+    <p>There's most likely something wrong with it. I'll deal with that eventually.<small class="font-italic">Yes, the raid selector does nothing.</small></p>
+  </div>
+  <form name="box_calc" class="container-fluid">
+    <fieldset class="row my-3">
+      <legend>What you have.</legend>
+      <label for="owned-meat" class="col-sm-2 col-form-label text-sm-right">Owned host materials</label><input id="owned-meat" class="form-control col-sm-2" type="number" name="meat" value="0" />
+      <label for="owned-token" class="col-sm-2 col-form-label text-sm-right">Owned Tokens</label><input id="owned-token" class="form-control col-sm-2" type="number" name="token" value="0" />
+      <label for="raid" class="col-sm-2 col-form-label text-sm-right">Raid</label>
+      <select id="raid" class="form-control col-sm-2" name="raid">
+        <option value="ex">Extreme</option>
+        <option value="imp" selected>Impossible</option>
+      </select>
+    </fieldset>
+
+    <fieldset class="row my-3">
+      <legend>And what you need.</legend>
+      <label for="vh" class="col-sm-2 col-form-label text-sm-right">Very Hard</label><output name="vh" class="col-sm-2 form-control bg-light"></output>
+      <label for="ex_imp" class="col-sm-2 col-form-label text-sm-right">Impossible</label><output name="ex_imp" class="col-sm-2 form-control bg-light"></output>
+      <label for="host_mat" class="col-sm-2 col-form-label text-sm-right">Host materials</label><output name="host_mat" class="col-sm-2 form-control bg-light"></output>
+    </fieldset>
+  </form>
+  <script type="text/javascript">
+    'use strict';
+    /* target_token - owned_token = x × 96 + y × 23 + 100 × (x × 0.316 + y × 0.047)
+         0 = x × 5 - y × 1.9 - 2 × (x × 0.316 + y × 0.047) - owned_meat */
+
+    let scope = {
+      tt: 40644,
+      ot: 0,
+      om: 0
+    };
+
+    const Fraction = algebra.Fraction;
+    const Expression = algebra.Expression;
+    const Equation = algebra.Equation;
+
+    let expr1 = algebra.parse('tt - ot = imp * 96 + vh * 23 + 100 * (imp * 0.316 + vh * 0.047)');
+    let expr2 = algebra.parse('0 = imp * 5 - vh * 1.9 - 2 * (imp * 0.316 + vh * 0.047) - om');
+
+    function solveImp(expr1, expr2, scope) {
+      let xExpr = expr1.eval(scope).solveFor('imp');
+
+      let yFrac = expr2.eval(scope).eval({
+        imp: xExpr
+      }).solveFor('vh');
+      yFrac.numer = yFrac.numer < 0 ? 0 : yFrac.numer; // Prevents negative solutions to the "meat" problem from artificially creating negative token gains
+      let xFrac = xExpr.eval({
+        vh: yFrac
+      }).constant();
+
+      return {
+        imp: xFrac.numer / xFrac.denom,
+        vh: yFrac.numer / yFrac.denom
+      };
+    }
+
+    document.box_calc.addEventListener('change', function(e) {
+      scope.tt = 40644; // document.box_calc
+      scope.ot = parseInt(document.box_calc.token.value);
+      scope.om = parseInt(document.box_calc.meat.value);
+
+      let result = solveImp(expr1, expr2, scope);
+
+      document.box_calc.vh.innerHTML = Math.round(Math.max(result.vh, 0));
+      document.box_calc.ex_imp.innerHTML = Math.round(Math.max(result.imp, 0));
+      document.box_calc.host_mat.innerHTML = Math.round(Math.max(result.vh, 0)*(1.9+2*0.047))+scope.om;
+    }, {
+      capture: false,
+      once: false,
+      passive: true
+    });
+    document.box_calc.dispatchEvent(new Event('change'));
+  </script>
+</body>
+
+</html>
