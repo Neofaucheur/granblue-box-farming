@@ -14,32 +14,47 @@
     <h1>Granblue Fantasy - Story Event box farming optimizer</h1>
     <p class="lead">Tells you just how much more host material you need to empty those 20 boxes.</p>
     <hr class="my-4" />
-    <p>That's just a quickly thrown together form with a Javascript solver, because I was tired of my slapdash Google Sheet with no solver. So here you go, from any arbitrary amount of tokens and host material, it can tell you how much total host material you need before you can forget about Very Hard and you can start letting the game farm itself by using full-auto on Impossible.</p>
-    <p>There's most likely something wrong with it. I'll deal with that eventually.<small class="font-italic">Yes, the raid selector does nothing.</small></p>
+    <p>That's just a quickly thrown together form with a Javascript solver, because I was tired of my slapdash Google Sheet with no solver. So here you go, from any arbitrary amount of tokens and host material, it can tell you how much total host
+      material you need before you can forget about Very Hard and you can start letting the game farm itself by using full-auto on Impossible.</p>
+    <p>There's most likely something wrong with it. I'll deal with that eventually.</p>
   </div>
   <form name="box_calc" class="container-fluid">
-    <fieldset class="row my-3">
+    <fieldset class="row align-items-center my-3">
+      <legend>Settings.</legend>
+      <label for="current-box" class="col-md-2 col-form-label text-sm-right">Current box</label><input id="current-box" class="form-control col-md-2" type="number" name="cur_box" value="1" min="1" />
+      <label for="target-box" class="col-md-2 col-form-label text-sm-right">Target box</label><input id="target-box" class="form-control col-md-2" type="number" name="tar_box" value="20" min="1" />
+      <label for="catch-up-dama" class="col-md-2 col-form-label text-sm-right">"Catch up" Damascus Crystals</label>
+      <div class="col-md-2 form-row align-items-center mx-0 px-0">
+        <input id="catch-up-dama" class="custom-range col-9" type="range" name="catch_dama_range" value="6" min="0" max="6" /><output name="catch_dama" class="form-control bg-light col-3 text-center"></output>
+      </div>
+      <label for="total-token" class="col-md-2 col-form-label text-sm-right">Total tokens</label><input id="total-token" class="form-control col-md-2" type="number" name="tot_tok" value="40664" min="0" disabled />
+      <div class="col-md-4"></div>
+      <div class="custom-control custom-switch col-md-4 col-form-label text-sm-center">
+        <input type="checkbox" class="custom-control-input" id="calc-token" name="calc_token" checked />
+        <label class="custom-control-label" for="calc-token">Calculate tokens</label>
+      </div>
+    </fieldset>
+
+    <fieldset class="row align-items-center my-3">
       <legend>What you have.</legend>
-      <label for="owned-meat" class="col-sm-2 col-form-label text-sm-right">Owned host materials</label><input id="owned-meat" class="form-control col-sm-2" type="number" name="meat" value="0" />
-      <label for="owned-token" class="col-sm-2 col-form-label text-sm-right">Owned Tokens</label><input id="owned-token" class="form-control col-sm-2" type="number" name="token" value="0" />
-      <label for="raid" class="col-sm-2 col-form-label text-sm-right">Raid</label>
-      <select id="raid" class="form-control col-sm-2" name="raid">
+      <label for="owned-meat" class="col-md-2 col-form-label text-sm-right">Owned host materials</label><input id="owned-meat" class="form-control col-md-2" type="number" name="meat" value="0" min="0" />
+      <label for="owned-token" class="col-md-2 col-form-label text-sm-right">Owned Tokens</label><input id="owned-token" class="form-control col-md-2" type="number" name="token" value="0" min="0" />
+      <label for="raid" class="col-md-2 col-form-label text-sm-right">Raid</label>
+      <select id="raid" class="form-control col-md-2" name="raid">
         <option value="ex">Extreme</option>
         <option value="imp" selected>Impossible</option>
       </select>
     </fieldset>
 
-    <fieldset class="row my-3">
+    <fieldset class="row align-items-center my-3">
       <legend>And what you need.</legend>
-      <label for="vh" class="col-sm-2 col-form-label text-sm-right">Very Hard</label><output name="vh" class="col-sm-2 form-control bg-light"></output>
-      <label for="ex_imp" class="col-sm-2 col-form-label text-sm-right">Impossible</label><output name="ex_imp" class="col-sm-2 form-control bg-light"></output>
-      <label for="host_mat" class="col-sm-2 col-form-label text-sm-right">Host materials</label><output name="host_mat" class="col-sm-2 form-control bg-light"></output>
+      <label for="vh" class="col-md-2 col-form-label text-sm-right">Very Hard</label><output name="vh" class="col-md-2 form-control bg-light"></output>
+      <label for="ex_imp" class="col-md-2 col-form-label text-sm-right">Impossible</label><output name="ex_imp" class="col-md-2 form-control bg-light"></output>
+      <label for="host_mat" class="col-md-2 col-form-label text-sm-right">Host materials</label><output name="host_mat" class="col-md-2 form-control bg-light"></output>
     </fieldset>
   </form>
   <script type="text/javascript">
     'use strict';
-    /* target_token - owned_token = x × 96 + y × 23 + 100 × (x × 0.316 + y × 0.047)
-         0 = x × 5 - y × 1.9 - 2 × (x × 0.316 + y × 0.047) - owned_meat */
 
     let scope = {
       tt: 40664,
@@ -51,14 +66,18 @@
     const Expression = algebra.Expression;
     const Equation = algebra.Equation;
 
-    let expr1 = algebra.parse('tt - ot = imp * 96 + vh * 23 + 100 * (imp * 0.316 + vh * 0.047)');
-    let expr2 = algebra.parse('0 = imp * 5 - vh * 1.9 - 2 * (imp * 0.316 + vh * 0.047) - om');
+    /* Impossible raid equations */
+    let expr1 = algebra.parse('tt - ot = raid * 96 + vh * 23 + 100 * (raid * 0.316 + vh * 0.047)');
+    let expr2 = algebra.parse('0 = raid * 5 - vh * 1.9 - 2 * (raid * 0.316 + vh * 0.047) - om');
+    /* Extreme raid equations */
+    let expr3 = algebra.parse('tt - ot = raid * 48 + vh * 23 + 100 * (raid * 0.3 + vh * 0.047)');
+    let expr4 = algebra.parse('0 = raid * 3 - vh * 1.9 - 2 * (raid * 0.3 + vh * 0.047) - om');
 
-    function solveImp(expr1, expr2, scope) {
-      let xExpr = expr1.eval(scope).solveFor('imp');
+    function solveRaid(expr1, expr2, scope) {
+      let xExpr = expr1.eval(scope).solveFor('raid');
 
       let yFrac = expr2.eval(scope).eval({
-        imp: xExpr
+        raid: xExpr
       }).solveFor('vh');
       yFrac.numer = yFrac.numer < 0 ? 0 : yFrac.numer; // Prevents negative solutions to the "meat" problem from artificially creating negative token gains
       let xFrac = xExpr.eval({
@@ -66,21 +85,92 @@
       }).constant();
 
       return {
-        imp: xFrac.numer / xFrac.denom,
+        raid: xFrac.numer / xFrac.denom,
         vh: yFrac.numer / yFrac.denom
       };
     }
 
+    function calcToken(boxes, start = 1, dama = 0) {
+      let tokens = 0;
+
+      for (let i = start; i <= boxes; i++) {
+        switch (i) {
+          case 1:
+            tokens += 599;
+            break;
+          case 2:
+            tokens += 799;
+            break;
+          case 3:
+            tokens += 999;
+            break;
+          default:
+            tokens += (i < 21) ? 1055 : 1052;
+            break;
+        }
+      }
+
+      tokens += dama;
+
+      return tokens * 2;
+    }
+
+    document.box_calc.catch_dama_range.addEventListener('input', function(e) {
+      document.box_calc.catch_dama.innerHTML = document.box_calc.catch_dama_range.value
+    })
+
     document.box_calc.addEventListener('change', function(e) {
-      scope.tt = 40664; // document.box_calc
+      if(document.box_calc.calc_token.checked) {
+        const catch_dama = parseInt(document.box_calc.catch_dama_range.value);
+        document.box_calc.catch_dama.innerHTML = document.box_calc.catch_dama_range.value;
+
+        const box_cur = parseInt(document.box_calc.cur_box.value);
+        const box_tar = parseInt(document.box_calc.tar_box.value);
+
+        scope.tt = calcToken(box_tar, box_cur, catch_dama); // document.box_calc
+
+        document.box_calc.tot_tok.value = scope.tt;
+
+        document.box_calc.tot_tok.disabled = true;
+
+        document.box_calc.catch_dama_range.disabled = false;
+        document.box_calc.cur_box.disabled = false;
+        document.box_calc.tar_box.disabled = false;
+      }
+      else {
+        scope.tt = parseInt(document.box_calc.tot_tok.value);
+
+        document.box_calc.tot_tok.disabled = false;
+
+        document.box_calc.catch_dama_range.disabled = true;
+        document.box_calc.cur_box.disabled = true;
+        document.box_calc.tar_box.disabled = true;
+      }
+
       scope.ot = parseInt(document.box_calc.token.value);
       scope.om = parseInt(document.box_calc.meat.value);
 
-      let result = solveImp(expr1, expr2, scope);
+      const raid = document.box_calc.raid.value;
+
+      let result = {
+        raid: NaN,
+        vh: NaN
+      };
+
+      switch (raid) {
+        case 'imp':
+          result = solveRaid(expr1, expr2, scope);
+          document.box_calc.querySelector('label[for="ex_imp"]').textContent = "Impossible";
+          break;
+        case 'ex':
+          result = solveRaid(expr3, expr4, scope);
+          document.box_calc.querySelector('label[for="ex_imp"]').textContent = "Extreme";
+          break;
+      }
 
       document.box_calc.vh.innerHTML = Math.round(Math.max(result.vh, 0));
-      document.box_calc.ex_imp.innerHTML = Math.round(Math.max(result.imp, 0));
-      document.box_calc.host_mat.innerHTML = Math.round(Math.max(result.vh, 0)*(1.9+2*0.047))+scope.om;
+      document.box_calc.ex_imp.innerHTML = Math.round(Math.max(result.raid, 0));
+      document.box_calc.host_mat.innerHTML = Math.round(Math.max(result.vh, 0) * (1.9 + 2 * 0.047)) + scope.om;
     }, {
       capture: false,
       once: false,
