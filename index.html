@@ -67,20 +67,20 @@
     const Equation = algebra.Equation;
 
     /* Impossible raid equations */
-    let expr1 = algebra.parse('tt - ot = raid * 96 + vh * 23 + 100 * (raid * 0.316 + vh * 0.047)');
-    let expr2 = algebra.parse('0 = raid * 5 - vh * 1.9 - 2 * (raid * 0.316 + vh * 0.047) - om');
+    const expr1 = algebra.parse('tt - ot = raid * 96 + vh * 23 + 100 * (raid * 0.316 + vh * 0.047)');
+    const expr2 = algebra.parse('0 = raid * 5 - vh * 1.9 - 2 * (raid * 0.316 + vh * 0.047) - om');
     /* Extreme raid equations */
-    let expr3 = algebra.parse('tt - ot = raid * 48 + vh * 23 + 100 * (raid * 0.3 + vh * 0.047)');
-    let expr4 = algebra.parse('0 = raid * 3 - vh * 1.9 - 2 * (raid * 0.3 + vh * 0.047) - om');
+    const expr3 = algebra.parse('tt - ot = raid * 48 + vh * 23 + 100 * (raid * 0.3 + vh * 0.047)');
+    const expr4 = algebra.parse('0 = raid * 3 - vh * 1.9 - 2 * (raid * 0.3 + vh * 0.047) - om');
 
     function solveRaid(expr1, expr2, scope) {
-      let xExpr = expr1.eval(scope).solveFor('raid');
+      const xExpr = expr1.eval(scope).solveFor('raid');
 
-      let yFrac = expr2.eval(scope).eval({
+      const yFrac = expr2.eval(scope).eval({
         raid: xExpr
       }).solveFor('vh');
       yFrac.numer = yFrac.numer < 0 ? 0 : yFrac.numer; // Prevents negative solutions to the "meat" problem from artificially creating negative token gains
-      let xFrac = xExpr.eval({
+      const xFrac = xExpr.eval({
         vh: yFrac
       }).constant();
 
