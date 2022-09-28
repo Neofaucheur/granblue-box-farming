@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <title>Granblue Fantasy - Story Event box farming optimizer</title>
   <script src="algebra.js/build/algebra-0.2.6.min.js"></script>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 </head>
 
@@ -14,9 +14,10 @@
     <h1>Granblue Fantasy - Story Event box farming optimizer</h1>
     <p class="lead">Tells you just how much more host material you need to empty those 20 boxes.</p>
     <hr class="my-4" />
-    <p>That's just a quickly thrown together form with a Javascript solver, because I was tired of my slapdash Google Sheet with no solver. So here you go, from any arbitrary amount of tokens and host material, it can tell you how much total host
-      material you need before you can forget about Very Hard and you can start letting the game farm itself by using full-auto on Impossible.</p>
-    <p>There's most likely something wrong with it. I'll deal with that eventually.</p>
+    <p class="alert alert-warning text-justify">Boxes item count, tokens drop, and host material drop rate have been updated as of September 28th, 2022.
+	The calculator has been updated to reflect item count and token drop changes, but data needs to be gathered before the new host material drop rate can be accounted for.
+	This should not affect significantly the outcome of the calculation, but as usual, it is recommended to regularly update your token- and host material-count to avoid over- or under-farming.<br />
+	The new free host are also outside the scope of this calculator, as are tokens and host materials obtained from badges, honors, and mission rewards.</p>
   </div>
   <form name="box_calc" class="container-fluid">
     <fieldset class="row align-items-center my-3">
@@ -67,10 +68,10 @@
     const Equation = algebra.Equation;
 
     /* Impossible raid equations */
-    const expr1 = algebra.parse('tt - ot = raid * 96 + vh * 23 + 100 * (raid * 0.316 + vh * 0.047)');
+    const expr1 = algebra.parse('tt - ot = raid * 144 + vh * 31 + 100 * (raid * 0.316 + vh * 0.047)');
     const expr2 = algebra.parse('0 = raid * 5 - vh * 1.9 - 2 * (raid * 0.316 + vh * 0.047) - om');
     /* Extreme raid equations */
-    const expr3 = algebra.parse('tt - ot = raid * 48 + vh * 23 + 100 * (raid * 0.3 + vh * 0.047)');
+    const expr3 = algebra.parse('tt - ot = raid * 64 + vh * 31 + 100 * (raid * 0.3 + vh * 0.047)');
     const expr4 = algebra.parse('0 = raid * 3 - vh * 1.9 - 2 * (raid * 0.3 + vh * 0.047) - om');
 
     function solveRaid(expr1, expr2, scope) {
@@ -99,10 +100,10 @@
             tokens += 600;
             break;
           case 2:
-            tokens += 800;
+            tokens += 790;
             break;
           case 3:
-            tokens += 1000;
+            tokens += 990;
             break;
           default:
             tokens += (i < 21) ? 1056 : 1052;
